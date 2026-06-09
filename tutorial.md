@@ -130,13 +130,21 @@ When successful, VS Code shows `WSL: Ubuntu` in the lower-left corner.
 
 ### B.1 Download the Agriscale Container from GitHub Releases
 
-1. Open the release page:
+1. From the tutorial folder, run the download script:
+
+```bash
+bash download.sh
+```
+
+2. The script queries the GitHub release automatically and downloads the matching `.sif` file from the **Assets** section.
+
+3. If you prefer to do it manually, open the release page:
 
 https://github.com/CropModelingPlatform/AgriscaleContainer/releases/tag/v1.2.1
 
-2. Scroll to the **Assets** section.
-3. Download the container file that matches your machine (OS/architecture).
-4. Place the downloaded file in a dedicated local Agriscale working directory, for example `~/agriscale` on Linux or WSL.
+4. Scroll to the **Assets** section.
+5. Download the container file that matches your machine (OS/architecture).
+6. Place the downloaded file in a dedicated local Agriscale working directory, for example `~/agriscale` on Linux or WSL.
 
 Note: this file is required before registering the custom kernel.
 

@@ -1,0 +1,22 @@
+
+Libraries : sqlite3, pathlib, pypyodbc
+
+#### change type in MasterInput.accdb (in Field size)
+
+##### Tu te places dans le répertoire Guillaume qui contient les scripts
+> python access_to_sqlite.py  ACME-9sites/MasterInput.accdb  ACME-9sites/MasterInput.db
+> python access_to_sqlite.py  ACME-9sites/ModelsDictionaryArise.accdb  ACME-9sites/ModelsDictionaryArise.db
+> python access_to_sqlite.py  ACME-9sites/Celsius/CelsiusV3nov17_dataArise.accdb  ACME-9sites/CelsiusV3nov17_dataArise.db
+
+### change idPoints and add some columns
+python change_key.py ACME-9sites\MasterInput.db
+
+
+### copy AgriScale_Ind from projects/AIDA/LIMA to your scratch
+
+## create a folder results/EXPS/exp_0 (stics) (exp_1 for dssat) and (exp_2 for celsius)
+# change in config the model you want to run - testoption=1, - fromMI=1
+# in your scratch_xxxxxx/AgriScale_Ind > sbatch --array=0-0 datamill.slurm (--array=1-1, --array=2-2 ...)
+
+# Results in results/EXPS/exp_X/MasterInput.db
+

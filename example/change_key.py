@@ -19,6 +19,8 @@ def update_database_keys(db_path: str = "MasterInput.db"):
     try:
         print(f"Connected to {db_path}")
         
+        '''
+        
         # Step 1: Create backup column "name" in Coordinates table
         print("\n1. Creating 'name' column in Coordinates table...")
         try:
@@ -123,6 +125,7 @@ def update_database_keys(db_path: str = "MasterInput.db"):
             )
         """)
         print(f"      Updated {cursor.rowcount} rows")
+        '''
         
         # Step 5: Add soil texture columns to Soil table
         print("\n5. Adding soil texture columns to Soil table...")
@@ -208,6 +211,7 @@ def update_database_keys(db_path: str = "MasterInput.db"):
         cursor.execute("UPDATE Soil SET extp = -99, totp = -99")
         print(f"      Updated {cursor.rowcount} rows")
         
+        '''
         # Step 6: Update idPoint in Coordinates table
         print("\n6. Updating idPoint in Coordinates table...")
         cursor.execute("""
@@ -223,7 +227,7 @@ def update_database_keys(db_path: str = "MasterInput.db"):
             SET idsim = idPoint || '_' || CAST(CAST(StartYear AS INTEGER) AS TEXT) || '_' || idMangt || '_' || idOption
         """)
         print(f"   Updated {cursor.rowcount} rows")
-        
+        '''
         # Step 8: Add DSCROP column to ListCultOption table
         print("\n8. Adding DSCROP column to ListCultOption table...")
         try:
@@ -256,6 +260,7 @@ def update_database_keys(db_path: str = "MasterInput.db"):
         cursor.execute("UPDATE CropManagement SET DHarvest = 200")
         print(f"      Updated {cursor.rowcount} rows")
         
+        '''
         # Step 10: Verify the changes
         print("\n10. Verifying changes...")
         cursor.execute("SELECT idPoint, name, latitudeDD, longitudeDD FROM Coordinates LIMIT 5")
@@ -272,7 +277,7 @@ def update_database_keys(db_path: str = "MasterInput.db"):
         print("   Sample from Soil table:")
         for row in cursor.fetchall():
             print(f"      idPoint: {row[0]}, TextureType: {row[1]}, Clay: {row[2]}, Silt: {row[3]}, Sand: {row[4]}, extp: {row[5]}, totp: {row[6]}")
-        
+        '''
         # Commit changes
         conn.commit()
         print("\n✓ All changes committed successfully!")

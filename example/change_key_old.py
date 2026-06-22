@@ -68,13 +68,13 @@ def update_database_keys(db_path: str = "MasterInput.db"):
         print("   Updating Soil.idPoint...")
         cursor.execute("""
             UPDATE Soil 
-            SET idPoint = (
+            SET idSoil = (
                 SELECT CAST(latitudeDD AS TEXT) || '_' || CAST(longitudeDD AS TEXT)
                 FROM Coordinates 
-                WHERE Coordinates.name = Soil.idPoint
+                WHERE Coordinates.name = Soil.idSoil
             )
             WHERE EXISTS (
-                SELECT 1 FROM Coordinates WHERE Coordinates.name = Soil.idPoint
+                SELECT 1 FROM Coordinates WHERE Coordinates.name = Soil.idSoil
             )
         """)
         print(f"      Updated {cursor.rowcount} rows")
@@ -127,33 +127,33 @@ def update_database_keys(db_path: str = "MasterInput.db"):
         # Step 5: Add soil texture columns to Soil table
         print("\n5. Adding soil texture columns to Soil table...")
         
-        # Add clay column
+        # Add Clay column
         try:
-            cursor.execute("ALTER TABLE Soil ADD COLUMN clay REAL")
-            print("   Column 'clay' created")
+            cursor.execute("ALTER TABLE Soil ADD COLUMN Clay REAL")
+            print("   Column 'Clay' created")
         except sqlite3.OperationalError as e:
             if "duplicate column" in str(e).lower():
-                print("   Column 'clay' already exists")
+                print("   Column 'Clay' already exists")
             else:
                 raise
         
-        # Add silt column
+        # Add Silt column
         try:
-            cursor.execute("ALTER TABLE Soil ADD COLUMN silt REAL")
-            print("   Column 'silt' created")
+            cursor.execute("ALTER TABLE Soil ADD COLUMN Silt REAL")
+            print("   Column 'Silt' created")
         except sqlite3.OperationalError as e:
             if "duplicate column" in str(e).lower():
-                print("   Column 'silt' already exists")
+                print("   Column 'Silt' already exists")
             else:
                 raise
         
-        # Add sand column
+        # Add Sand column
         try:
-            cursor.execute("ALTER TABLE Soil ADD COLUMN sand REAL")
-            print("   Column 'sand' created")
+            cursor.execute("ALTER TABLE Soil ADD COLUMN Sand REAL")
+            print("   Column 'Sand' created")
         except sqlite3.OperationalError as e:
             if "duplicate column" in str(e).lower():
-                print("   Column 'sand' already exists")
+                print("   Column 'Sand' already exists")
             else:
                 raise
         
@@ -177,45 +177,28 @@ def update_database_keys(db_path: str = "MasterInput.db"):
             else:
                 raise
         
-        # Update clay, silt, sand from SoilTypes table
-        print("   Checking SoilTextureType matching...")
-        
-        # Diagnostic: Check unmatched values
-        cursor.execute("""
-            SELECT DISTINCT Soil.SoilTextureType 
-            FROM Soil 
-            WHERE NOT EXISTS (
-                SELECT 1 FROM SoilTypes 
-                WHERE TRIM(UPPER(SoilTypes.SoilTextureType)) = TRIM(UPPER(Soil.SoilTextureType))
-            )
-        """)
-        unmatched = cursor.fetchall()
-        if unmatched:
-            print(f"   WARNING: {len(unmatched)} unmatched SoilTextureType values in Soil table:")
-            for row in unmatched:
-                print(f"      '{row[0]}'")
-        
-        print("   Updating clay, silt, sand values from SoilTypes table...")
+        # Update Clay, Silt, Sand from SoilTypes table
+        print("   Updating Clay, Silt, Sand values from SoilTypes table...")
         cursor.execute("""
             UPDATE Soil 
-            SET clay = (
-                SELECT SoilTypes.clay 
+            SET Clay = (
+                SELECT SoilTypes.Clay 
                 FROM SoilTypes 
-                WHERE TRIM(UPPER(SoilTypes.SoilTextureType)) = TRIM(UPPER(Soil.SoilTextureType))
+                WHERE UPPER(TRIM(SoilTypes.SoilTextureType)) = UPPER(TRIM(Soil.SoilTextureType))
             ),
-            silt = (
-                SELECT SoilTypes.silt 
+            Silt = (
+                SELECT SoilTypes.Silt 
                 FROM SoilTypes 
-                WHERE TRIM(UPPER(SoilTypes.SoilTextureType)) = TRIM(UPPER(Soil.SoilTextureType))
+                WHERE UPPER(TRIM(SoilTypes.SoilTextureType)) = UPPER(TRIM(Soil.SoilTextureType))
             ),
-            sand = (
-                SELECT SoilTypes.sand 
+            Sand = (
+                SELECT SoilTypes.Sand 
                 FROM SoilTypes 
-                WHERE TRIM(UPPER(SoilTypes.SoilTextureType)) = TRIM(UPPER(Soil.SoilTextureType))
+                WHERE UPPER(TRIM(SoilTypes.SoilTextureType)) = UPPER(TRIM(Soil.SoilTextureType))
             )
             WHERE EXISTS (
                 SELECT 1 FROM SoilTypes 
-                WHERE TRIM(UPPER(SoilTypes.SoilTextureType)) = TRIM(UPPER(Soil.SoilTextureType))
+                WHERE UPPER(TRIM(SoilTypes.SoilTextureType)) = UPPER(TRIM(Soil.SoilTextureType))
             )
         """)
         print(f"      Updated {cursor.rowcount} rows with texture values")
@@ -237,30 +220,64 @@ def update_database_keys(db_path: str = "MasterInput.db"):
         print("\n7. Updating idsim in SimUnitList table...")
         cursor.execute("""
             UPDATE SimUnitList 
-            SET idsim = idPoint || '_' || CAST(CAST(year AS INTEGER) AS TEXT) || '_' || idMangt || '_' || idOption
+            SET idsim = idPoint || '_' || CAST(CAST(StartYear AS INTEGER) AS TEXT) || '_' || idMangt || '_' || idOption
         """)
         print(f"   Updated {cursor.rowcount} rows")
         
-        # Step 8: Verify the changes
-        print("\n8. Verifying changes...")
+        # Step 8: Add DSCROP column to ListCultOption table
+        print("\n8. Adding DSCROP column to ListCultOption table...")
+        try:
+            cursor.execute("ALTER TABLE ListCultOption ADD COLUMN DSCROP TEXT")
+            print("   Column 'DSCROP' created")
+        except sqlite3.OperationalError as e:
+            if "duplicate column" in str(e).lower():
+                print("   Column 'DSCROP' already exists")
+            else:
+                raise
+        
+        # Set DSCROP value to 'CER047'
+        print("   Setting DSCROP to 'CER047'...")
+        cursor.execute("UPDATE ListCultOption SET DSCROP = 'CER047'")
+        print(f"      Updated {cursor.rowcount} rows")
+        
+        # Step 9: Add DHarvest column to CropManagement table
+        print("\n9. Adding DHarvest column to CropManagement table...")
+        try:
+            cursor.execute("ALTER TABLE CropManagement ADD COLUMN DHarvest INTEGER")
+            print("   Column 'DHarvest' created")
+        except sqlite3.OperationalError as e:
+            if "duplicate column" in str(e).lower():
+                print("   Column 'DHarvest' already exists")
+            else:
+                raise
+        
+        # Set DHarvest value to 200
+        print("   Setting DHarvest to 200...")
+        cursor.execute("UPDATE CropManagement SET DHarvest = 200")
+        print(f"      Updated {cursor.rowcount} rows")
+        
+        # Step 10: Verify the changes
+        print("\n10. Verifying changes...")
         cursor.execute("SELECT idPoint, name, latitudeDD, longitudeDD FROM Coordinates LIMIT 5")
         print("   Sample from Coordinates table:")
         for row in cursor.fetchall():
             print(f"      idPoint: {row[0]}, name: {row[1]}, lat: {row[2]}, lon: {row[3]}")
         
-        cursor.execute("SELECT idsim, idPoint, idSoil, year, idMangt, idOption FROM SimUnitList LIMIT 5")
+        cursor.execute("SELECT idsim, idPoint, idSoil, StartYear, idMangt, idOption FROM SimUnitList LIMIT 5")
         print("   Sample from SimUnitList table:")
         for row in cursor.fetchall():
             print(f"      idsim: {row[0]}, idPoint: {row[1]}, idSoil: {row[2]}, year: {row[3]}, idMangt: {row[4]}, idOption: {row[5]}")
         
-        cursor.execute("SELECT idPoint, SoilTextureType, clay, silt, sand, extp, totp FROM Soil LIMIT 5")
+        cursor.execute("SELECT idSoil, SoilTextureType, Clay, Silt, Sand, extp, totp FROM Soil LIMIT 5")
         print("   Sample from Soil table:")
         for row in cursor.fetchall():
-            print(f"      idPoint: {row[0]}, TextureType: {row[1]}, clay: {row[2]}, silt: {row[3]}, sand: {row[4]}, extp: {row[5]}, totp: {row[6]}")
+            print(f"      idPoint: {row[0]}, TextureType: {row[1]}, Clay: {row[2]}, Silt: {row[3]}, Sand: {row[4]}, extp: {row[5]}, totp: {row[6]}")
         
         # Commit changes
         conn.commit()
         print("\n✓ All changes committed successfully!")
+        
+        # add Column DSCROP IN ListCultOption table
         
         # Optional: Drop the 'name' column if no longer needed
         # print("\n9. Dropping temporary 'name' column...")

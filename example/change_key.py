@@ -130,35 +130,21 @@ def update_database_keys(db_path: str = "MasterInput.db"):
         # Step 5: Add soil texture columns to Soil table
         print("\n5. Adding soil texture columns to Soil table...")
         
-        # Add Clay column
-        try:
-            cursor.execute("ALTER TABLE Soil ADD COLUMN Clay REAL")
-            print("   Column 'Clay' created")
-        except sqlite3.OperationalError as e:
-            if "duplicate column" in str(e).lower():
-                print("   Column 'Clay' already exists")
-            else:
-                raise
-        
-        # Add Silt column
-        try:
-            cursor.execute("ALTER TABLE Soil ADD COLUMN Silt REAL")
-            print("   Column 'Silt' created")
-        except sqlite3.OperationalError as e:
-            if "duplicate column" in str(e).lower():
-                print("   Column 'Silt' already exists")
-            else:
-                raise
-        
-        # Add Sand column
-        try:
-            cursor.execute("ALTER TABLE Soil ADD COLUMN Sand REAL")
-            print("   Column 'Sand' created")
-        except sqlite3.OperationalError as e:
-            if "duplicate column" in str(e).lower():
-                print("   Column 'Sand' already exists")
-            else:
-                raise
+        # SQLite does not support "ADD COLUMN IF NOT EXISTS", so inspect the
+        # table schema first and add only the missing texture columns.
+        cursor.execute("PRAGMA table_info(Soil)")
+        soil_columns = {row[1].lower() for row in cursor.fetchall()}
+        created_texture_columns = []
+
+        for column in ("Silt", "Sand", "Clay"):
+            if column.lower() in soil_columns:
+                print(f"   Column '{column}' already exists")
+                continue
+
+            cursor.execute(f'ALTER TABLE Soil ADD COLUMN "{column}" REAL')
+            soil_columns.add(column.lower())
+            created_texture_columns.append(column)
+            print(f"   Column '{column}' created")
         
         # Add extp column
         try:
@@ -180,31 +166,30 @@ def update_database_keys(db_path: str = "MasterInput.db"):
             else:
                 raise
         
-        # Update Clay, Silt, Sand from SoilTypes table
-        print("   Updating Clay, Silt, Sand values from SoilTypes table...")
-        cursor.execute("""
-            UPDATE Soil 
-            SET Clay = (
-                SELECT SoilTypes.Clay 
-                FROM SoilTypes 
+        # Populate only columns created during this execution. Existing columns
+        # and their values are left unchanged.
+        if created_texture_columns:
+            column_names = ", ".join(created_texture_columns)
+            print(f"   Updating newly created columns: {column_names}...")
+            assignments = ",\n            ".join(
+                f'''"{column}" = (
+                SELECT SoilTypes."{column}"
+                FROM SoilTypes
                 WHERE UPPER(TRIM(SoilTypes.SoilTextureType)) = UPPER(TRIM(Soil.SoilTextureType))
-            ),
-            Silt = (
-                SELECT SoilTypes.Silt 
-                FROM SoilTypes 
-                WHERE UPPER(TRIM(SoilTypes.SoilTextureType)) = UPPER(TRIM(Soil.SoilTextureType))
-            ),
-            Sand = (
-                SELECT SoilTypes.Sand 
-                FROM SoilTypes 
-                WHERE UPPER(TRIM(SoilTypes.SoilTextureType)) = UPPER(TRIM(Soil.SoilTextureType))
+            )'''
+                for column in created_texture_columns
             )
-            WHERE EXISTS (
-                SELECT 1 FROM SoilTypes 
-                WHERE UPPER(TRIM(SoilTypes.SoilTextureType)) = UPPER(TRIM(Soil.SoilTextureType))
-            )
-        """)
-        print(f"      Updated {cursor.rowcount} rows with texture values")
+            cursor.execute(f"""
+                UPDATE Soil
+                SET {assignments}
+                WHERE EXISTS (
+                    SELECT 1 FROM SoilTypes
+                    WHERE UPPER(TRIM(SoilTypes.SoilTextureType)) = UPPER(TRIM(Soil.SoilTextureType))
+                )
+            """)
+            print(f"      Updated {cursor.rowcount} rows with texture values")
+        else:
+            print("   Texture columns already exist; values left unchanged")
         
         # Set extp and totp to -99
         print("   Setting extp and totp to -99...")
@@ -317,7 +302,6 @@ if __name__ == "__main__":
     
     update_database_keys(str(db_file))
     print("\n✓ Database update completed!")
-
 
 
 

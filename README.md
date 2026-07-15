@@ -4,7 +4,7 @@ This repository contains the setup tutorial and helper scripts to run Agriscale 
 
 ## Quick Start
 
-1. Clone the repository:
+1. Clone the repository or download the [Tutorial repository](https://github.com/CropModelingPlatform/Tutorial/tree/main) :
 
 ```bash
 git clone https://github.com/CropModelingPlatform/Tutorial.git

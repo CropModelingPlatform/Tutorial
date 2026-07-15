@@ -7,15 +7,15 @@ This tutorial covers the prerequisites required to run Agriscale RN locally. Par
 ### A.1 Install WSL and Ubuntu on Windows
 
 1. Open **PowerShell as Administrator**.
-2. Run:
+1. Run:
 
-```powershell
-wsl --install -d Ubuntu
-```
+   ```powershell
+   wsl --install -d Ubuntu
+   ```
 
-3. Restart Windows if prompted.
-4. Launch **Ubuntu** from the Start menu.
-5. Complete the first-time setup by creating:
+1. Restart Windows if prompted.
+1. Launch **Ubuntu** from the Start menu.
+1. Complete the first-time setup by creating:
    - A UNIX username
    - A password
 
@@ -23,6 +23,27 @@ If `wsl --install` does not work, update WSL first:
 
 ```powershell
 wsl --update
+```
+
+If Ubuntu does not appear after restarting Windows, you can install it from the
+**Microsoft Store**:
+
+1. Open the Microsoft Store.
+1. Search for **Ubuntu**.
+1. Select **Ubuntu** (or an Ubuntu LTS version) and click **Install**.
+1. Launch Ubuntu from the Start menu.
+1. Complete the first-time setup by creating your UNIX username and password.
+
+You can then verify that Ubuntu is installed from PowerShell:
+
+```powershell
+wsl -l -v
+```
+
+To launch it directly from PowerShell, run:
+
+```powershell
+wsl -d Ubuntu
 ```
 
 ### A.2 Verify Ubuntu Works Correctly
@@ -92,14 +113,14 @@ whoami
 ### A.4 Install VS Code on Windows
 
 1. Download VS Code from the official website.
-2. Install it with the default options.
-3. Open VS Code once the installation finishes.
+1. Install it with the default options.
+1. Open VS Code once the installation finishes.
 
 ### A.5 Add the WSL Extension in VS Code
 
 1. In VS Code, open the **Extensions** view (`Ctrl+Shift+X`).
-2. Search for **WSL**.
-3. Install **WSL** published by Microsoft.
+1. Search for **WSL**.
+1. Install **WSL** published by Microsoft.
 
 ### A.6 Open Your Ubuntu Environment in VS Code
 
@@ -128,25 +149,32 @@ When successful, VS Code shows `WSL: Ubuntu` in the lower-left corner.
 
 ## Part B - Agriscale RN Prerequisites
 
-### B.1 Download the Agriscale Container from GitHub Releases
+### B.1 Download the Agriscale Container
 
-1. From the tutorial folder, run the download script:
+Choose one of the following methods to download the Agriscale container.
+
+#### Option A: Download Automatically with the Bash Script
+
+From the tutorial folder, run:
 
 ```bash
 bash download.sh
 ```
 
-2. The script queries the GitHub release automatically and downloads the matching `.sif` file from the **Assets** section.
+The script queries the GitHub release and downloads the matching `.sif` file
+from the **Assets** section automatically.
 
-3. If you prefer to do it manually, open the release page:
+#### Option B: Download Manually from GitHub Releases
 
-https://github.com/CropModelingPlatform/AgriscaleContainer/releases/tag/v1.2.1
+1. Open the Agriscale Container release page:
 
-4. Scroll to the **Assets** section.
-5. Download the container file that matches your machine (OS/architecture).
-6. Place the downloaded file in a dedicated local Agriscale working directory, for example `~/agriscale` on Linux or WSL.
+   https://github.com/CropModelingPlatform/AgriscaleContainer/releases/tag/v1.2.1
 
-Note: this file is required before registering the custom kernel.
+1. Scroll to the **Assets** section.
+1. Download the `.sif` container file that matches your machine's architecture.
+1. Place the file in the Tutorial directory
+
+The downloaded `.sif` file is required before registering the custom kernel.
 
 ## Part C - Jupyter Custom Kernel Prerequisite
 
@@ -160,19 +188,15 @@ https://apptainer.org/docs/admin/main/installation.html#installation-on-linux
 
 On some Ubuntu systems, the runtime package may appear as `singularity-container`, while the command used by the script remains `singularity` or `apptainer`.
 
-1. Make sure the Agriscale container file downloaded in Part B is available locally.
-2. Open a terminal in the project folder.
-3. Run the setup workflow and pass the container image path as an argument:
+1. Make sure the Agriscale container file (datamill.sif) downloaded in Part B is available locally.
+1. Open a terminal in the project folder.
+1. Run the setup workflow and pass the container image path as an argument:
 
-```bash
-bash setup.sh /full/path/to/your/agriscale-container.sif
-```
+   ```bash
+   cd /full/path/to/Tutorial
+   bash setup.sh /full/path/to/your/datamill.sif.sif
+   ```
 
-4. Verify that the kernel was registered:
-
-```bash
-jupyter kernelspec list
-```
 
 Expected result:
 - A kernelspec named `singularity-kernel` should appear.

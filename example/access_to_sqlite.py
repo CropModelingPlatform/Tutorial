@@ -21,24 +21,53 @@ def convert_access_to_sqlite(path_to_access_db, path_to_sql_db):
     # Map Access types to SQLite types
     type_mapping = {
         'COUNTER': 'INTEGER',
+        'AUTOINCREMENT': 'INTEGER',
+        'BIGINT': 'INTEGER',
         'INTEGER': 'INTEGER',
         'LONG': 'INTEGER',
+        'LONG INTEGER': 'INTEGER',
         'SHORT': 'INTEGER',
+        'SMALLINT': 'INTEGER',
         'BYTE': 'INTEGER',
+        'TINYINT': 'INTEGER',
+        'UNSIGNED BYTE': 'INTEGER',
         'SINGLE': 'REAL',
         'DOUBLE': 'REAL',
+        'FLOAT': 'REAL',
+        'REAL': 'REAL',
         'CURRENCY': 'REAL',
+        'MONEY': 'REAL',
         'DECIMAL': 'REAL',
+        'NUMERIC': 'REAL',
+        'CHAR': 'TEXT',
+        'NCHAR': 'TEXT',
+        'WCHAR': 'TEXT',
         'VARCHAR': 'TEXT',
+        'NVARCHAR': 'TEXT',
+        'WVARCHAR': 'TEXT',
         'LONGCHAR': 'TEXT',
+        'LONGVARCHAR': 'TEXT',
+        'LONGWVARCHAR': 'TEXT',
+        'LONGTEXT': 'TEXT',
+        'MEMO': 'TEXT',
+        'HYPERLINK': 'TEXT',
+        'GUID': 'TEXT',
         'DATETIME': 'TEXT',
+        'DATE': 'TEXT',
+        'TIME': 'TEXT',
+        'TIMESTAMP': 'TEXT',
+        'DATETIMEEXTENDED': 'TEXT',
         'BIT': 'INTEGER',
         'YESNO': 'INTEGER',
-        'Long Integer': 'INTEGER',
-        'integer': 'INTEGER',
-        'Iouble': 'REAL',
-        "SMALLINT": "INTEGER",
-    
+        'BOOLEAN': 'INTEGER',
+        'LOGICAL': 'INTEGER',
+        'BINARY': 'BLOB',
+        'VARBINARY': 'BLOB',
+        'LONGBINARY': 'BLOB',
+        'LONGVARBINARY': 'BLOB',
+        'LONG VARBINARY': 'BLOB',
+        'BIGBINARY': 'BLOB',
+        'OLE': 'BLOB',
     }
     
     # Make sqlite connections
@@ -72,7 +101,13 @@ def convert_access_to_sqlite(path_to_access_db, path_to_sql_db):
                 # Map Access type to SQLite type
                 access_type = column.type_name.upper()
                 print("----------------", column.column_name, access_type)
-                sqlite_type = type_mapping.get(access_type, 'TEXT')  # Default to TEXT if unknown
+                try:
+                    sqlite_type = type_mapping[access_type]
+                except KeyError as error:
+                    raise ValueError(
+                        f"Unsupported Access type {access_type!r} for "
+                        f"column {column.column_name!r} in table {table!r}"
+                    ) from error
                 
                 # For INTEGER types, don't include size specification
                 if sqlite_type == 'INTEGER':

@@ -1,6 +1,6 @@
 # AgriScale RN installation troubleshooting
 
-This document complements the [installation guide](tutorial_full.md). Run PowerShell commands from Windows and Bash commands inside Ubuntu/WSL or Linux.
+This document complements the [installation guide](tutorial.md). Run PowerShell commands from Windows and Bash commands inside Ubuntu/WSL or Linux.
 
 ## WSL is unavailable
 

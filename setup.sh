@@ -3,6 +3,8 @@ set -eu
 
 # setup.sh — run once per user
 
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+
 if [[ "${EUID}" -eq 0 ]]; then
     echo "Do not run this script as root."
     echo "Create and use a normal Linux user first."
@@ -74,8 +76,38 @@ if ! python3 -c "import jupyter_client" >/dev/null 2>&1; then
   fi
 fi
 
-# 1. Create the working directory that will hold the wrapper script.
+# 1. Create and populate the working directory.
 mkdir -p "$HOME/datamill"
+
+copy_resource_if_missing() {
+  local resource_name="$1"
+  local source_path="$SCRIPT_DIR/$resource_name"
+  local destination_path="$HOME/datamill/$resource_name"
+
+  if [[ ! -e "$source_path" ]]; then
+    echo "Required tutorial resource not found: $source_path" >&2
+    exit 1
+  fi
+
+  if [[ -e "$destination_path" ]]; then
+    echo "Keeping existing resource: $destination_path"
+    return
+  fi
+
+  cp -a -- "$source_path" "$destination_path"
+  echo "Copied resource: $destination_path"
+}
+
+for resource_name in \
+  MasterInput.db \
+  ModelsDictionaryArise.db \
+  CelsiusV3nov17_dataArise.db \
+  ori_MasterInput.db \
+  cultivars \
+  acme.ipynb
+do
+  copy_resource_if_missing "$resource_name"
+done
 
 # 2. Create the Singularity launcher used by Jupyter.
 cat > "$HOME/datamill/singularity_kernel.sh" << EOF
@@ -110,4 +142,3 @@ cat > "$HOME/.local/share/jupyter/kernels/singularity-kernel/kernel.json" << EOF
 EOF
 
 echo "Done! Run: jupyter kernelspec list to verify"
-

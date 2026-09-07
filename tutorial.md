@@ -186,7 +186,7 @@ from the **Assets** section automatically.
 
 1. Open the Agriscale Container release page:
 
-   https://github.com/CropModelingPlatform/AgriscaleContainer/releases/tag/v1.2.5
+   https://github.com/CropModelingPlatform/AgriscaleContainer/releases/tag/v1.2.6
 
 1. Scroll to the **Assets** section.
 1. Download the `.sif` container file that matches your machine's architecture.

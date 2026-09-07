@@ -1,6 +1,7 @@
 # AgriScale RN installation troubleshooting
 
-This document complements the [installation guide](tutorial.md). Run PowerShell commands from Windows and Bash commands inside Ubuntu/WSL or Linux.
+This document complements the [installation guide](tutorial.md). Run PowerShell
+commands from Windows and Bash commands inside Ubuntu/WSL or Linux.
 
 ## WSL is unavailable
 
@@ -12,7 +13,8 @@ wsl --install -d Ubuntu
 wsl -l -v
 ```
 
-If Ubuntu remains unavailable, install an Ubuntu LTS release from the Microsoft Store. The `VERSION` column should normally show `2`.
+If Ubuntu remains unavailable, install an Ubuntu LTS release from the Microsoft
+Store. The `VERSION` column should normally show `2`.
 
 ## Ubuntu always starts as root
 
@@ -33,11 +35,14 @@ wsl --shutdown
 whoami
 ```
 
-Some Ubuntu launchers also support `ubuntu config --default-user your-user` from PowerShell.
+Some Ubuntu launchers also support
+`ubuntu config --default-user your-user` from PowerShell.
 
 ## The `code` command is unavailable
 
-Install VS Code on Windows and the Microsoft **WSL** extension. Close and reopen VS Code and Ubuntu, then retry `code .`. Do not install a separate Linux copy of VS Code inside WSL.
+Install VS Code on Windows and the Microsoft **WSL** extension. Close and reopen
+VS Code and Ubuntu, then retry `code .`. Do not install a separate Linux copy of
+VS Code inside WSL.
 
 ## VS Code does not offer the kernel
 
@@ -47,7 +52,8 @@ Install the Microsoft **Python** and **Jupyter** extensions in WSL, then check:
 jupyter kernelspec list
 ```
 
-If `singularity-kernel` is absent, rerun `setup.sh` with the absolute image path and restart VS Code.
+If `singularity-kernel` is absent, rerun `setup.sh` with the absolute image path
+and restart VS Code.
 
 ## The container download fails
 
@@ -58,7 +64,9 @@ sudo apt-get update
 sudo apt-get install -y curl jq
 ```
 
-Run `bash download.sh` from the directory containing the script. If GitHub access is restricted, download the `.sif` manually from the [v1.2.5 release](https://github.com/CropModelingPlatform/AgriscaleContainer/releases/tag/v1.2.5).
+Run `bash download.sh` from the directory containing the script. If GitHub
+access is restricted, download the `.sif` manually from the
+[v1.2.5 release].
 
 ## `setup.sh` cannot find the image
 
@@ -80,7 +88,8 @@ command -v singularity
 command -v apptainer
 ```
 
-If neither exists and automatic installation fails, follow the [official Apptainer installation instructions](https://apptainer.org/docs/admin/main/installation.html#installation-on-linux), then rerun `setup.sh`.
+If neither exists and automatic installation fails, follow the
+[official Apptainer installation instructions], then rerun `setup.sh`.
 
 ## The `/run/user/<uid>` bind fails when systemd is disabled
 
@@ -163,10 +172,12 @@ recreate the launcher with the fixed `/run/user/<uid>` bind.
 Test the container independently, replacing its path as needed:
 
 ```bash
-apptainer exec /absolute/path/to/datamill.sif python -c "import sys; print(sys.version); import ipykernel; print(ipykernel.__version__)"
+apptainer exec /absolute/path/to/datamill.sif \
+  python -c "import sys; print(sys.version); import ipykernel; print(ipykernel.__version__)"
 ```
 
-Use `singularity` instead if that is your runtime. Inspect the generated launcher and kernel definition:
+Use `singularity` instead if that is your runtime. Inspect the generated
+launcher and kernel definition:
 
 ```bash
 sed -n '1,160p' "$HOME/datamill/singularity_kernel.sh"
@@ -175,10 +186,12 @@ sed -n '1,160p' "$HOME/.local/share/jupyter/kernels/singularity-kernel/kernel.js
 
 ## Files are not visible in the container
 
-Keep the notebook and inputs under your Linux home directory in WSL. Confirm the working directory from a notebook:
+Keep the notebook and inputs under your Linux home directory in WSL. Confirm
+the working directory from a notebook:
 
 ```python
 import os
+
 print(os.getcwd())
 print(os.listdir("."))
 ```
@@ -206,4 +219,8 @@ jupyter kernelspec list
 ls -lh *.sif
 ```
 
-Include the complete error, operating system, WSL or native Linux, and AgriScale version. Never include passwords or access tokens.
+Include the complete error, operating system, WSL or native Linux, and AgriScale
+version. Never include passwords or access tokens.
+
+[official Apptainer installation instructions]: https://apptainer.org/docs/admin/main/installation.html#installation-on-linux
+[v1.2.5 release]: https://github.com/CropModelingPlatform/AgriscaleContainer/releases/tag/v1.2.5

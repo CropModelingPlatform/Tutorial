@@ -14,7 +14,7 @@ This is the guide to follow end to end for the training. For installation failur
 
 The setup has three components:
 
-1. the AgriScale RN `v1.2.5` Singularity Image Format (`.sif`) container, which holds the scientific software stack;
+1. the AgriScale RN `v1.2.6` Singularity Image Format (`.sif`) container, which holds the scientific software stack;
 2. Singularity or Apptainer as the container runtime;
 3. a Jupyter kernelspec that launches Python inside the container.
 

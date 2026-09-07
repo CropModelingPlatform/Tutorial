@@ -1,6 +1,18 @@
-# Tutorial: Run Agriscale RN Locally (Windows WSL or Linux)
+# Tutorial: Install ACME Locally (Windows WSL or Linux)
 
-This tutorial covers the prerequisites required to run Agriscale RN locally. Part A prepares the environment on Windows or Linux, Part B downloads the Agriscale container, and Part C registers the custom Jupyter kernel used by VS Code and Jupyter.
+This tutorial prepares the local environment needed to run **ACME**, the notebook used to design experiments and simulate crop models without a cluster. Agriscale — the full distributed, spatialized platform — is only presented briefly during the session; this tutorial does not cover it. Part A prepares the environment on Windows or Linux, Part B downloads the Agriscale RN container that ACME runs inside, Part C registers the custom Jupyter kernel used by VS Code and Jupyter, and Part D validates the installation before the hands-on session.
+
+This is the guide to follow end to end for the training. For installation failures and platform-specific details, see [troubleshooting.md](troubleshooting.md).
+
+## Architecture
+
+The setup has three components:
+
+1. the AgriScale RN `v1.2.5` Singularity Image Format (`.sif`) container, which holds the scientific software stack;
+2. Singularity or Apptainer as the container runtime;
+3. a Jupyter kernelspec that launches Python inside the container.
+
+Notebooks and project data remain on the host and are accessed through bind mounts. Pinning the image version makes the computational environment easier to reproduce across participants and machines.
 
 ## Part A - Environment Prerequisites
 
@@ -168,7 +180,7 @@ from the **Assets** section automatically.
 
 1. Open the Agriscale Container release page:
 
-   https://github.com/CropModelingPlatform/AgriscaleContainer/releases/tag/v1.2.1
+   https://github.com/CropModelingPlatform/AgriscaleContainer/releases/tag/v1.2.5
 
 1. Scroll to the **Assets** section.
 1. Download the `.sif` container file that matches your machine's architecture.
@@ -194,7 +206,7 @@ On some Ubuntu systems, the runtime package may appear as `singularity-container
 
    ```bash
    cd /full/path/to/Tutorial
-   bash setup.sh /full/path/to/your/datamill.sif.sif
+   bash setup.sh /full/path/to/your/datamill.sif
    ```
 
 
@@ -207,3 +219,98 @@ Expected result:
 After registration, select **Singularity (Python)** from the kernel picker in Jupyter or in VS Code notebooks.
 
 Note: the kernel wrapper uses `singularity_kernel.sh`, which runs Python inside your Singularity or Apptainer image.
+
+## Part D - Validate the Installation and Run ACME
+
+### D.1 Confirm the Container Runs Python Directly
+
+This step separates container/runtime errors from Jupyter or VS Code integration errors. Replace `IMAGE` with the exact path to your downloaded `.sif` file:
+
+```bash
+RUNTIME="$(command -v singularity || command -v apptainer)"
+IMAGE="/full/path/to/your/datamill.sif"
+"$RUNTIME" exec "$IMAGE" python -c \
+  'import sys, ipykernel; print(sys.version); print(ipykernel.__version__)'
+```
+
+Both the Python version and the `ipykernel` version should print without an exception.
+
+### D.2 Run ACME in Jupyter or VS Code
+
+1. Open `acme.ipynb` and select the **Singularity (Python)** kernel.
+1. In VS Code under WSL, confirm the lower-left status bar shows the WSL environment.
+1. Run this first cell:
+
+   ```python
+   import os
+   import platform
+   import sys
+
+   print("Python executable:", sys.executable)
+   print("Python version:", sys.version)
+   print("Platform:", platform.platform())
+   print("Working directory:", os.getcwd())
+   ```
+
+1. Then confirm the expected tutorial inputs are visible:
+
+   ```python
+   from pathlib import Path
+
+   required = [
+       Path("MasterInput.db"),
+       Path("ModelsDictionaryArise.db"),
+       Path("CelsiusV3nov17_dataArise.db"),
+   ]
+
+   missing = [str(path) for path in required if not path.exists()]
+   if missing:
+       raise FileNotFoundError(f"Missing tutorial inputs: {missing}")
+
+   print("Required tutorial inputs are available.")
+   ```
+
+1. Run `acme.ipynb` in order and check that model inputs, working directories, and outputs correspond to the intended experiment.
+
+### D.3 Completion Checklist
+
+You are ready for the hands-on session when:
+
+- the direct container smoke test (D.1) prints a Python and `ipykernel` version without error;
+- `jupyter kernelspec list` includes `singularity-kernel`;
+- **Singularity (Python)** starts without error in Jupyter or VS Code;
+- `acme.ipynb` sees all required databases and input files;
+- the reference workflow in `acme.ipynb` produces the expected outputs.
+
+If any item fails, see [troubleshooting.md](troubleshooting.md) and keep the complete error output when asking for help.
+
+## Reproducibility Record
+
+For each training session or scientific analysis, retain:
+
+- AgriScale release: `v1.2.5`;
+- `.sif` filename and SHA-256 checksum;
+- Singularity/Apptainer version;
+- host operating system and architecture;
+- notebook or analysis revision;
+- input dataset versions and provenance;
+- crop-model versions used inside AgriScale;
+- configuration files and parameter sets;
+- simulation outputs and execution date.
+
+A minimal environment record can be generated with:
+
+```bash
+{
+  uname -a
+  "$RUNTIME" --version
+  sha256sum "$IMAGE"
+  jupyter kernelspec list
+} > agriscale_environment.txt
+```
+
+Review `agriscale_environment.txt` before archiving it; it may contain local paths or host identifiers.
+
+## Updating AgriScale RN
+
+Do not silently replace the `v1.2.5` image during an ongoing experiment. Download a newer image alongside it, compute its checksum, register or select it explicitly, and rerun Part D. Treat a container upgrade as a change to the computational method and document it with the results.

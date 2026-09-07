@@ -82,15 +82,81 @@ command -v apptainer
 
 If neither exists and automatic installation fails, follow the [official Apptainer installation instructions](https://apptainer.org/docs/admin/main/installation.html#installation-on-linux), then rerun `setup.sh`.
 
-## The `/run/user/<uid>` bind fails
+## The `/run/user/<uid>` bind fails when systemd is disabled
 
-Some WSL environments do not create this directory:
+The Jupyter kernel may stop immediately with an error similar to:
+
+```text
+container creation failed: mount /run/user/1000->/run/user/1000 error:
+mount source /run/user/1000 doesn't exist
+```
+
+The generated `singularity_kernel.sh` mounts the user runtime directory so
+that the container can read the Jupyter connection file. On a systemd-based
+session, `/run/user/<uid>` is created automatically for the user. Some WSL
+sessions do not create it when systemd is disabled.
+
+Check the current situation inside Ubuntu:
 
 ```bash
+ps -p 1 -o comm=
+ls -ld "/run/user/$(id -u)"
+echo "$XDG_RUNTIME_DIR"
+```
+
+If PID 1 is displayed as `init(Ubuntu-...)` instead of `systemd`, enable
+systemd in `/etc/wsl.conf`:
+
+```ini
+[boot]
+systemd=true
+
+[user]
+default=your-user
+```
+
+The `systemd=true` setting must be under `[boot]`. If it is placed under
+`[user]`, WSL reports:
+
+```text
+wsl: Unknown key 'user.systemd' in /etc/wsl.conf
+```
+
+Restart WSL completely from **Windows PowerShell**, not from the Ubuntu shell:
+
+```powershell
+wsl --shutdown
+```
+
+Open Ubuntu again and verify:
+
+```bash
+ps -p 1 -o comm=
 ls -ld "/run/user/$(id -u)"
 ```
 
-If it is absent, the generated launcher may fail because it always requests that bind. Preserve the complete error message. A robust launcher should add this bind only when the directory exists.
+The first command should print `systemd`, and the second should show a runtime
+directory owned by your Linux user. Restart the notebook kernel in VS Code
+afterward.
+
+### Keep systemd disabled
+
+If systemd must remain disabled, the fixed `/run/user/<uid>` bind cannot be
+used. The launcher must instead mount the directory that actually contains the
+Jupyter connection file:
+
+```bash
+connection_dir="$(dirname -- "$connection_file")"
+
+exec singularity exec \
+  --bind "$HOME/datamill:/data" \
+  --bind "$connection_dir:$connection_dir" \
+  /absolute/path/to/datamill.sif \
+  python -m ipykernel_launcher -f "$connection_file"
+```
+
+Apply the same change to `setup.sh`; otherwise, running setup again will
+recreate the launcher with the fixed `/run/user/<uid>` bind.
 
 ## The kernel starts and immediately stops
 

@@ -2,7 +2,7 @@
 set -eu
 
 REPO="CropModelingPlatform/AgriscaleContainer"
-TAG="v1.2.6"
+TAG="v1.2.7"
 API_URL="https://api.github.com/repos/${REPO}/releases/tags/${TAG}"
 
 # Prefer jq if available; otherwise use a text fallback.
